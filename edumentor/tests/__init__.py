@@ -1,0 +1,3 @@
+"""
+EduMentor package tests module.
+"""
