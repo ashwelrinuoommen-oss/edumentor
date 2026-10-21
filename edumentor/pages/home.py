@@ -496,7 +496,7 @@ def render_home_page(orch: EduMentorOrchestrator):
                     content = ans_file.read()
                     if ans_file.name.lower().endswith(".pdf"):
                         from edumentor.extractor import extract_text_from_pdf
-                        _, text = extract_text_from_pdf(content)
+                        text = extract_text_from_pdf(content)
                     else:
                         text = content.decode("utf-8", errors="replace")
                     orch.submit_recall_response(text if text.strip() else "Uploaded blank answer file.")

@@ -28,7 +28,7 @@ def render_history_page(orch: EduMentorOrchestrator):
     """, unsafe_allow_html=True)
 
     history_service = HistoryService()
-    user_id = f"user_{orch.student_name.lower()}"
+    user_id = f"user_{orch.student_name.lower().replace(' ', '_')}"
     today_iso = date.today().isoformat()
 
     attempts = history_service.get_user_recall_attempts(user_id=user_id, limit=30)

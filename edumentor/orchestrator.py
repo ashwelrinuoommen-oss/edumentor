@@ -14,11 +14,12 @@ from edumentor.scheduler import calculate_sm2, prioritize_study_queue, map_score
 from edumentor.evaluation import evaluate_recall, generate_socratic_hints
 from edumentor.samples import SAMPLE_CURRICULA
 from edumentor.extractor import extract_concepts_from_text, extract_text_from_pdf, extract_pdf_pages_and_text, clean_doc_title
-from edumentor.llm import LLMConfig, call_llm
+from edumentor.llm import LLMConfig, call_llm, get_default_config
 from edumentor.ai.question_generator import (
     generate_recall_question as ai_generate_recall_question,
     build_question_grounding_metadata
 )
+from edumentor.database.database import DEFAULT_DB_PATH
 from edumentor.database.repository import EduMentorRepository
 from edumentor.state_machine import (
     ConversationState,
@@ -57,9 +58,12 @@ class EduMentorOrchestrator:
         """Helper to determine if a message should display the avatar beside it."""
         return is_major_teacher_message(msg)
 
-    def __init__(self, student_name: str = "Ashwel", db_path: str = "edumentor.db"):
+    def __init__(self, student_name: str = "Ashwel", db_path: Optional[str] = None, llm_config: Optional[LLMConfig] = None):
         self.student_name = student_name
-        self.db_path = db_path
+        if not db_path or db_path == "edumentor.db":
+            self.db_path = DEFAULT_DB_PATH
+        else:
+            self.db_path = db_path
         self.repo = EduMentorRepository(db_path=self.db_path)
         self.curriculum_title: Optional[str] = None
         self.subject_id: Optional[str] = None
@@ -97,7 +101,7 @@ class EduMentorOrchestrator:
         
         # Conversational message history
         self.chat_history: List[Dict[str, str]] = []
-        self.llm_config = LLMConfig(provider="demo")
+        self.llm_config = llm_config or get_default_config()
 
         # Phase 34: Conversation Database session identifier
         import uuid

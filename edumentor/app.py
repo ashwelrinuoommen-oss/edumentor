@@ -124,7 +124,9 @@ p, span, label, div {
 }
 
 /* Streamlit Buttons: Vibrant Cyan/Violet Gradient Primary */
-.stButton > button {
+.stButton > button,
+button[kind="primary"],
+button[data-testid="baseButton-primary"] {
   background: linear-gradient(135deg, #25D8E8 0%, #8B5CF6 100%) !important;
   color: #050608 !important;
   font-weight: 700 !important;
@@ -136,7 +138,9 @@ p, span, label, div {
   box-shadow: 0 4px 14px rgba(37, 216, 232, 0.25) !important;
 }
 
-.stButton > button:hover {
+.stButton > button:hover,
+button[kind="primary"]:hover,
+button[data-testid="baseButton-primary"]:hover {
   transform: translateY(-1px) !important;
   box-shadow: 0 6px 20px rgba(37, 216, 232, 0.45) !important;
 }
@@ -146,11 +150,26 @@ p, span, label, div {
 }
 
 /* Secondary Button Modifier */
-button[kind="secondary"] {
-  background-color: #0D1117 !important;
-  color: #F5F7FA !important;
+.stButton > button[kind="secondary"],
+.stButton > button[data-testid="baseButton-secondary"],
+button[kind="secondary"],
+button[data-testid="baseButton-secondary"] {
+  background: rgba(13, 17, 23, 0.85) !important;
+  color: #9AA4B2 !important;
+  font-weight: 500 !important;
   border: 1px solid #27303B !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.stButton > button[kind="secondary"]:hover,
+.stButton > button[data-testid="baseButton-secondary"]:hover,
+button[kind="secondary"]:hover,
+button[data-testid="baseButton-secondary"]:hover {
+  background: rgba(22, 27, 34, 0.95) !important;
+  color: #F5F7FA !important;
+  border-color: #25D8E8 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(37, 216, 232, 0.2) !important;
 }
 
 /* Streamlit Chat Message & Input Overrides */
@@ -264,6 +283,13 @@ def main():
 
     orch: EduMentorOrchestrator = st.session_state.orchestrator
 
+    # Auto-sync LLM config from .env if provider was demo or unconfigured
+    if hasattr(orch, "llm_config") and (orch.llm_config.provider == "demo" or not orch.llm_config.api_key):
+        from edumentor.llm import get_default_config
+        fresh_cfg = get_default_config()
+        if fresh_cfg.provider != "demo" and fresh_cfg.api_key:
+            orch.llm_config = fresh_cfg
+
     # Check authentication state (Phase 1)
     authenticated_user = st.session_state.get("authenticated_user")
 
@@ -319,19 +345,23 @@ def main():
         active_page = st.session_state.current_page
 
         with tab1:
-            if st.button("Home", key="nav_home", use_container_width=True):
+            t1 = "primary" if active_page == "home" else "secondary"
+            if st.button("Home", key="nav_home", type=t1, use_container_width=True):
                 st.session_state.current_page = "home"
                 st.rerun()
         with tab2:
-            if st.button("History", key="nav_history", use_container_width=True):
+            t2 = "primary" if active_page == "history" else "secondary"
+            if st.button("History", key="nav_history", type=t2, use_container_width=True):
                 st.session_state.current_page = "history"
                 st.rerun()
         with tab3:
-            if st.button("Progress", key="nav_progress", use_container_width=True):
+            t3 = "primary" if active_page == "progress" else "secondary"
+            if st.button("Progress", key="nav_progress", type=t3, use_container_width=True):
                 st.session_state.current_page = "progress"
                 st.rerun()
         with tab4:
-            if st.button("Settings", key="nav_settings", use_container_width=True):
+            t4 = "primary" if active_page == "settings" else "secondary"
+            if st.button("Settings", key="nav_settings", type=t4, use_container_width=True):
                 st.session_state.current_page = "settings"
                 st.rerun()
 

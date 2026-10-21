@@ -62,6 +62,19 @@ class TestUIComponents(unittest.TestCase):
         self.assertIn("Adaptive Loopback", call_arg)
         self.assertIn("Paging", call_arg)
 
+    @patch("streamlit.markdown")
+    def test_chat_bubble_render_user_and_assistant(self, mock_md):
+        # User message
+        render_chat_bubble(role="user", content="Here is my explanation of paging", student_initial="A")
+        self.assertTrue(mock_md.called)
+        call_arg = mock_md.call_args[0][0]
+        self.assertIn("Here is my explanation of paging", call_arg)
+
+        # Assistant message
+        render_chat_bubble(role="assistant", content="Great job explaining paging!", expression="happy")
+        all_calls = " ".join(call[0][0] for call in mock_md.call_args_list if call[0] and isinstance(call[0][0], str))
+        self.assertIn("Great job explaining paging!", all_calls)
+
 
 if __name__ == "__main__":
     unittest.main()

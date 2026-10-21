@@ -7,7 +7,8 @@ import sqlite3
 import os
 from typing import Optional
 
-DEFAULT_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "edumentor.db")
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+DEFAULT_DB_PATH = os.path.join(PROJECT_ROOT, "edumentor.db")
 
 
 def get_db_connection(db_path: Optional[str] = None) -> sqlite3.Connection:

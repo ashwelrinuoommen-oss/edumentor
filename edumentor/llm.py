@@ -12,6 +12,12 @@ from typing import Dict, Any, Optional, List, Tuple
 from dataclasses import dataclass, field
 from edumentor.utils.error_handler import ERROR_LLM_MSG, EduMentorLLMError
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
+
 
 @dataclass
 class LLMConfig:
@@ -54,14 +60,35 @@ class LLMConfig:
 
 
 def get_default_config() -> LLMConfig:
-    """Read API keys from environment if present, else fallback to demo mode."""
-    if os.environ.get("GEMINI_API_KEY"):
-        return LLMConfig(provider="gemini", model="gemini-1.5-flash", api_key=os.environ["GEMINI_API_KEY"])
-    elif os.environ.get("OPENAI_API_KEY"):
-        return LLMConfig(provider="openai", model="gpt-4o-mini", api_key=os.environ["OPENAI_API_KEY"])
-    elif os.environ.get("ANTHROPIC_API_KEY"):
-        return LLMConfig(provider="anthropic", model="claude-3-5-haiku-20241022", api_key=os.environ["ANTHROPIC_API_KEY"])
+    """Read API keys and active provider from environment if present, else fallback to demo mode."""
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(override=True)
+    except Exception:
+        pass
+
+    env_provider = os.environ.get("LLM_PROVIDER", "").strip().lower()
+    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+
+    if env_provider == "gemini" and gemini_key:
+        return LLMConfig(provider="gemini", model="gemini-3.8-flash", api_key=gemini_key)
+    elif env_provider == "openai" and openai_key:
+        return LLMConfig(provider="openai", model="gpt-4o-mini", api_key=openai_key)
+    elif env_provider == "anthropic" and anthropic_key:
+        return LLMConfig(provider="anthropic", model="claude-3-5-haiku-20241022", api_key=anthropic_key)
+    elif env_provider == "ollama":
+        return LLMConfig(provider="ollama", model="llama3")
+
+    if gemini_key:
+        return LLMConfig(provider="gemini", model="gemini-3.8-flash", api_key=gemini_key)
+    elif openai_key:
+        return LLMConfig(provider="openai", model="gpt-4o-mini", api_key=openai_key)
+    elif anthropic_key:
+        return LLMConfig(provider="anthropic", model="claude-3-5-haiku-20241022", api_key=anthropic_key)
     return LLMConfig(provider="demo", model="heuristic-v1")
+
 
 
 def test_llm_connection(config: LLMConfig) -> Tuple[bool, str]:
@@ -122,10 +149,24 @@ def _execute_provider_call(
         return _demo_llm_response(prompt)
 
     elif provider == "gemini":
-        try:
-            model_name = config.model if config.model != "default" else "gemini-1.5-flash"
-            api_key = config.api_key or os.environ.get("GEMINI_API_KEY", "")
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+        api_key = config.api_key or os.environ.get("GEMINI_API_KEY", "")
+        if not api_key:
+            return "Google Gemini API key not found. Please add your GEMINI_API_KEY to .env or in Settings."
+
+        model_name = config.model
+        if not model_name or model_name == "default" or "1.5" in model_name:
+            model_name = "gemini-3.8-flash"
+
+        candidates = [model_name]
+        for fallback_m in ["gemini-3.8-flash", "gemini-flash-latest", "gemini-2.5-pro"]:
+            if fallback_m not in candidates:
+                candidates.append(fallback_m)
+
+        last_error = ""
+        import time
+
+        for candidate in candidates:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate}:generateContent?key={api_key}"
             payload = {
                 "contents": [
                     {"role": "user", "parts": [{"text": f"{system_prompt}\n\n{prompt}"}]}
@@ -137,11 +178,42 @@ def _execute_provider_call(
                 data=json.dumps(payload).encode("utf-8"),
                 headers={"Content-Type": "application/json"}
             )
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                return data["candidates"][0]["content"]["parts"][0]["text"]
-        except Exception:
-            return ERROR_LLM_MSG
+
+            # Try up to 2 times for transient errors
+            for attempt in range(2):
+                try:
+                    with urllib.request.urlopen(req, timeout=30) as resp:
+                        data = json.loads(resp.read().decode("utf-8"))
+                        return data["candidates"][0]["content"]["parts"][0]["text"]
+                except urllib.error.HTTPError as http_err:
+                    err_msg = ""
+                    try:
+                        err_body = http_err.read().decode("utf-8")
+                        err_json = json.loads(err_body)
+                        err_msg = err_json.get("error", {}).get("message", str(http_err))
+                    except Exception:
+                        err_msg = http_err.reason
+                    last_error = f"Google Gemini API Error ({http_err.code}): {err_msg}"
+                    
+                    # If 429 rate limit or 503 service unavailable, pause briefly on first attempt
+                    if http_err.code in [429, 503] and attempt == 0:
+                        time.sleep(1.5)
+                        continue
+                    # If 404 (model deprecated/not available), break to next candidate model
+                    if http_err.code == 404:
+                        break
+                    # For auth errors (400, 401, 403), do not retry
+                    if http_err.code in [400, 401, 403]:
+                        return last_error
+                except Exception as exc:
+                    last_error = f"Error connecting to Gemini ({candidate}): {str(exc)}"
+                    if attempt == 0:
+                        time.sleep(1.0)
+                        continue
+                    break
+
+        return last_error or ERROR_LLM_MSG
+
 
     elif provider in ["openai", "gpt"]:
         try:
@@ -394,26 +466,29 @@ def _demo_llm_response(prompt: str) -> str:
         
         common = words_student.intersection(words_canonical)
         overlap_ratio = len(common) / max(1, len(words_canonical)) if words_canonical else 0.1
+        student_precision = len(common) / max(1, len(words_student)) if words_student else 0.0
         word_count = len(student_text.split())
 
+        effective_score = max(overlap_ratio, min(1.0, student_precision * 0.75), min(1.0, len(common) / 10.0))
+
         # Calibrated rubric scoring
-        if overlap_ratio >= 0.24 or len(common) >= 7:
+        if effective_score >= 0.22 or len(common) >= 5:
             # High conceptual mastery: accurate vocabulary and mechanisms
-            correctness = min(98.0, 72.0 + overlap_ratio * 38.0)
-            completeness = min(96.0, 60.0 + min(22.0, word_count * 0.5) + overlap_ratio * 25.0)
+            correctness = min(98.0, 75.0 + effective_score * 35.0)
+            completeness = min(96.0, 68.0 + min(18.0, word_count * 0.4) + effective_score * 20.0)
             misconceptions = []
             penalty = 0.0
             reasoning = "The student accurately articulates the core operational mechanism with solid technical precision."
-        elif overlap_ratio >= 0.20:
+        elif effective_score >= 0.14 or len(common) >= 3:
             # Partial understanding: grasps main premise, lacks depth or secondary mechanics
-            correctness = round(52.0 + (overlap_ratio - 0.20) * 80.0, 1)
-            completeness = round(42.0 + min(24.0, word_count * 0.5), 1)
+            correctness = round(56.0 + (effective_score - 0.14) * 60.0, 1)
+            completeness = round(48.0 + min(20.0, word_count * 0.4), 1)
             misconceptions = []
             penalty = 0.0
             reasoning = "The student understands the high-level concept but omits underlying causal mechanisms."
         else:
             # Low overlap: severe misconception, keyword mismatch, or irrelevant answer
-            correctness = round(max(5.0, overlap_ratio * 120.0), 1)
+            correctness = round(max(5.0, effective_score * 90.0), 1)
             completeness = round(max(5.0, min(18.0, word_count * 0.3)), 1)
             misconceptions = ["Demonstrates significant conceptual drift or misunderstanding of core mechanics."]
             penalty = 10.0
