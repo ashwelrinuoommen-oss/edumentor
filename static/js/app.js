@@ -927,6 +927,7 @@ async function uploadNotesFile(file) {
   const processingView = document.getElementById("composerProcessingView");
   const promptForm = document.getElementById("homePromptForm");
 
+  let progressTimer = null;
   if (isFromHome && processingView && promptForm) {
     promptForm.style.display = "none";
     processingView.style.display = "flex";
@@ -936,9 +937,27 @@ async function uploadNotesFile(file) {
     const fillEl = document.getElementById("composerProgressFill");
 
     if (filenameEl) filenameEl.textContent = file.name;
-    if (statusEl) statusEl.textContent = "Processing your notes...";
-    if (pctEl) pctEl.textContent = "82%";
-    if (fillEl) fillEl.style.width = "82%";
+    const steps = [
+      { pct: "20%", text: "Reading your notes..." },
+      { pct: "40%", text: "Identifying major topics..." },
+      { pct: "60%", text: "Breaking topics into subtopics..." },
+      { pct: "80%", text: "Finding prerequisite relationships..." },
+      { pct: "95%", text: "Preparing your study path..." }
+    ];
+    let stepIdx = 0;
+    if (statusEl) statusEl.textContent = steps[0].text;
+    if (pctEl) pctEl.textContent = steps[0].pct;
+    if (fillEl) fillEl.style.width = steps[0].pct;
+    stepIdx = 1;
+
+    progressTimer = setInterval(() => {
+      if (stepIdx < steps.length) {
+        if (statusEl) statusEl.textContent = steps[stepIdx].text;
+        if (pctEl) pctEl.textContent = steps[stepIdx].pct;
+        if (fillEl) fillEl.style.width = steps[stepIdx].pct;
+        stepIdx++;
+      }
+    }, 450);
   } else {
     transitionToChatStage();
     appendUserMessage(`📎 Uploaded study notes: ${file.name}`);
@@ -959,9 +978,13 @@ async function uploadNotesFile(file) {
       throw new Error(data.detail || "I couldn't read that file properly. Try uploading the PDF again or send a text-based PDF.");
     }
 
+    if (progressTimer) clearInterval(progressTimer);
+
     if (isFromHome && processingView) {
+      const statusEl = document.getElementById("composerProcStatus");
       const pctEl = document.getElementById("composerProcPct");
       const fillEl = document.getElementById("composerProgressFill");
+      if (statusEl) statusEl.textContent = "Study path ready!";
       if (pctEl) pctEl.textContent = "100%";
       if (fillEl) fillEl.style.width = "100%";
       await new Promise((r) => setTimeout(r, 450));
@@ -974,6 +997,7 @@ async function uploadNotesFile(file) {
     announceToScreenReader("Notes successfully uploaded and processed. Starting study session.");
     updateUI(data);
   } catch (err) {
+    if (progressTimer) clearInterval(progressTimer);
     renderTeacherTyping(false);
     if (isFromHome && processingView && promptForm) {
       promptForm.style.display = "flex";
@@ -1546,11 +1570,37 @@ function createInlineStudyBox(concept) {
     principlesHtml += `<li>${pt}</li>`;
   });
 
+  const majorEyebrow = (concept.major_topic && concept.major_topic.toLowerCase() !== (concept.title || "").toLowerCase())
+    ? `<div style="font-size: 11px; font-weight: 700; color: #25D8E8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">📂 ${concept.major_topic}</div>`
+    : "";
+  const pageBadge = concept.source_page
+    ? `<span style="font-size: 11px; color: #64748B; background: rgba(255,255,255,0.04); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);">📄 Page ${concept.source_page}</span>`
+    : "";
+  const namedMethods = concept.named_types_or_methods || [];
+  let namedHtml = "";
+  if (namedMethods.length > 0) {
+    const chips = namedMethods.map(m => `<span style="background: rgba(37,216,232,0.12); border: 1px solid rgba(37,216,232,0.3); border-radius: 4px; padding: 2px 7px; font-size: 11px; color: #7DD3FC; margin-right: 6px; display: inline-block; margin-bottom: 4px;">${m}</span>`).join("");
+    namedHtml = `<div style="margin-bottom: 10px;"><span style="font-size: 11.5px; color: #94A3B8; margin-right: 6px;">Key Methods & Types:</span>${chips}</div>`;
+  }
+  const defs = concept.definitions || [];
+  let defsHtml = "";
+  if (defs.length > 0) {
+    const dList = defs.map(d => `<div style="margin-bottom: 4px;">📖 <em>${d}</em></div>`).join("");
+    defsHtml = `<div style="background: rgba(139, 92, 246, 0.09); border-left: 3px solid #8B5CF6; padding: 8px 12px; border-radius: 0 6px 6px 0; margin-bottom: 12px; font-size: 12.5px; color: #E2E8F0;">${dList}</div>`;
+  }
+
   box.innerHTML = `
+    ${majorEyebrow}
     <div class="inline-concept-header">
       <h4 class="inline-concept-title">${concept.title}</h4>
-      <span class="inline-tier-pill">${tierName}</span>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        ${pageBadge}
+        <span class="inline-tier-pill">${tierName}</span>
+      </div>
     </div>
+    ${concept.summary ? `<div style="font-size: 13.5px; color: #94A3B8; background: #161B22; border-left: 3px solid #25D8E8; padding: 10px 14px; border-radius: 0 8px 8px 0; margin-bottom: 12px; line-height: 1.5;">${concept.summary}</div>` : ""}
+    ${defsHtml}
+    ${namedHtml}
     <ul class="inline-concept-principles">
       ${principlesHtml}
     </ul>

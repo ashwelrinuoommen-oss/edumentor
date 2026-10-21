@@ -93,12 +93,27 @@ class ConceptExtractionSchema(BaseSchema):
             cid = item.get("id") or f"c_{idx + 1}"
             cid = re.sub(r"[^a-zA-Z0-9_]", "_", str(cid).lower())
 
+            major_topic = item.get("major_topic") or ""
+            named_ents = item.get("named_types_or_methods") or item.get("named_entities") or []
+            if isinstance(named_ents, str):
+                named_ents = [named_ents]
+            definitions = item.get("definitions") or []
+            if isinstance(definitions, str):
+                definitions = [definitions]
+            prompt_q = item.get("prompt_question") or f"In your own words, what is {str(title).strip()} and how does it work?"
+
             normalized_concepts.append({
                 "id": cid,
                 "title": str(title).strip(),
+                "major_topic": str(major_topic).strip(),
                 "summary": str(summary).strip(),
                 "canonical_explanation": str(canonical).strip(),
                 "key_points": [str(kp).strip() for kp in key_points if str(kp).strip()],
+                "named_types_or_methods": [str(ne).strip() for ne in named_ents if str(ne).strip()],
+                "named_entities": [str(ne).strip() for ne in named_ents if str(ne).strip()],
+                "definitions": [str(d).strip() for d in definitions if str(d).strip()],
+                "source_page": str(item.get("source_page") or item.get("source_location") or ""),
+                "prompt_question": str(prompt_q).strip(),
                 "prerequisites": [str(p).strip() for p in prereqs if str(p).strip()]
             })
 

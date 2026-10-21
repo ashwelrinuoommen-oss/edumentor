@@ -140,15 +140,15 @@ def render_home_page(orch: EduMentorOrchestrator):
         welcome_title = ctx.get("welcome_title", f"Welcome back, {student_name} 👋")
         welcome_html = f"""<div style="text-align:center;margin-top:4px;margin-bottom:24px;">
 <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(37,216,232,0.08);border:1px solid rgba(37,216,232,0.25);border-radius:30px;padding:4px 16px;margin-bottom:12px;">
-<span style="font-size:11.5px;font-weight:700;color:#25D8E8;letter-spacing:0.06em;">Learn • Recall • Master</span>
+<span style="font-size:11px;font-weight:700;color:#25D8E8;letter-spacing:0.08em;text-transform:uppercase;">Learn • Recall • Master</span>
 </div>
-<div style="font-family:'Outfit',sans-serif;font-size:34px;font-weight:700;color:#FFFFFF;letter-spacing:-0.6px;margin-bottom:8px;">
+<div style="font-family:'Newsreader',Georgia,serif;font-size:35px;font-weight:700;color:#FFFFFF;letter-spacing:-0.4px;margin-bottom:6px;">
 {welcome_title}
 </div>
-<div style="font-size:20px;font-weight:500;color:#E2E8F0;margin-bottom:8px;">
+<div style="font-size:19px;font-weight:600;color:#E2E8F0;margin-bottom:8px;">
 {ctx['headline']}
 </div>
-<div style="font-size:14.5px;color:#94A3B8;max-width:580px;margin:0 auto;line-height:1.5;">
+<div style="font-size:14.5px;color:#94A3B8;max-width:580px;margin:0 auto;line-height:1.55;">
 {ctx['subtext']}
 </div>
 </div>"""
@@ -229,15 +229,16 @@ def render_home_page(orch: EduMentorOrchestrator):
         # Handle Composer Submission (Unified typing and file upload)
         if send_triggered:
             handled = False
-            # 1. Process files if uploaded with Phase 28 Processing Card
+            # 1. Process files if uploaded with honest step progression
             if uploaded_files:
                 first_name = uploaded_files[0].name
-                # Display Phase 28 Processing Card
+
+                # Step 1: Reading your notes
                 composer_slot.markdown(
                     render_composer_processing_card(
                         filename=first_name,
-                        progress_pct=82,
-                        status_text="Processing your notes..."
+                        progress_pct=20,
+                        status_text="Reading your notes..."
                     ),
                     unsafe_allow_html=True
                 )
@@ -246,6 +247,15 @@ def render_home_page(orch: EduMentorOrchestrator):
                 for uf in uploaded_files:
                     file_bytes = uf.read()
                     if uf.name.lower().endswith(".pdf"):
+                        # Step 2: Identifying major topics & chunking
+                        composer_slot.markdown(
+                            render_composer_processing_card(
+                                filename=first_name,
+                                progress_pct=45,
+                                status_text="Identifying major topics & extracting hierarchy..."
+                            ),
+                            unsafe_allow_html=True
+                        )
                         orch.ingest_pdf(file_bytes, filename=uf.name)
                         handled = True
                     else:
@@ -253,8 +263,26 @@ def render_home_page(orch: EduMentorOrchestrator):
                         combined_text += f"\n\n--- Module: {uf.name} ---\n\n" + text
 
                 if combined_text and not handled:
+                    composer_slot.markdown(
+                        render_composer_processing_card(
+                            filename=first_name,
+                            progress_pct=50,
+                            status_text="Breaking topics into subtopics..."
+                        ),
+                        unsafe_allow_html=True
+                    )
                     orch.ingest_notes_text(combined_text, title=first_name)
                     handled = True
+
+                # Step 5: Preparing study path
+                composer_slot.markdown(
+                    render_composer_processing_card(
+                        filename=first_name,
+                        progress_pct=100,
+                        status_text="Preparing your study path..."
+                    ),
+                    unsafe_allow_html=True
+                )
 
             # 2. Process typed text if provided
             elif composer_text.strip():
@@ -351,6 +379,24 @@ def render_home_page(orch: EduMentorOrchestrator):
                     tier = c.get("tier", 0)
                     tier_label = "Tier 0: Foundational" if tier == 0 else ("Tier 1: Intermediate" if tier == 1 else "Tier 2: Advanced")
 
+                    major_topic = c.get("major_topic")
+                    major_eyebrow = f"<div style='font-size: 11px; font-weight: 700; color: #25D8E8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;'>📂 {major_topic}</div>" if major_topic and major_topic.lower() != c['title'].lower() else ""
+
+                    page_num = c.get("source_page")
+                    page_badge = f"<span style='font-size: 11px; color: #94A3B8; background: rgba(255,255,255,0.04); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);'>📄 Page {page_num}</span>" if page_num else ""
+
+                    named_methods = c.get("named_types_or_methods") or []
+                    named_html = ""
+                    if named_methods:
+                        chips_list = "".join(f"<span style='background: rgba(37,216,232,0.12); border: 1px solid rgba(37,216,232,0.3); border-radius: 4px; padding: 2px 7px; font-size: 11px; color: #7DD3FC; font-weight: 500; margin-right: 6px; display: inline-block; margin-bottom: 4px;'>{m}</span>" for m in named_methods)
+                        named_html = f"<div style='margin-bottom: 10px;'><span style='font-size: 11.5px; color: #94A3B8; margin-right: 6px;'>Key Methods & Types:</span>{chips_list}</div>"
+
+                    defs_list = c.get("definitions") or []
+                    defs_html = ""
+                    if defs_list:
+                        defs_inner = "".join(f"<div style='margin-bottom: 4px;'>📖 <em>{d}</em></div>" for d in defs_list)
+                        defs_html = f"<div style='background: rgba(139, 92, 246, 0.09); border-left: 3px solid #8B5CF6; padding: 8px 12px; border-radius: 0 6px 6px 0; margin-bottom: 12px; font-size: 12.5px; color: #E2E8F0;'>{defs_inner}</div>"
+
                     principles_list = c.get("key_points") or c.get("principles", [])
                     principles_html = "".join(f"<li style='margin-bottom: 4px;'>{p}</li>" for p in principles_list)
 
@@ -363,12 +409,16 @@ def render_home_page(orch: EduMentorOrchestrator):
                         margin: 14px 0;
                         box-shadow: 0 8px 24px rgba(0,0,0,0.4);
                     ">
+                        {major_eyebrow}
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <span style="font-size: 16px; font-weight: 700; color: #F8FAFC;">{c['title']}</span>
-                            <span style="
-                                font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px;
-                                background: rgba(37, 216, 232, 0.12); color: #25D8E8; border: 1px solid rgba(37, 216, 232, 0.3);
-                            ">{tier_label}</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                {page_badge}
+                                <span style="
+                                    font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px;
+                                    background: rgba(37, 216, 232, 0.12); color: #25D8E8; border: 1px solid rgba(37, 216, 232, 0.3);
+                                ">{tier_label}</span>
+                            </div>
                         </div>
                         <div style="
                             font-size: 13.5px; color: #94A3B8; background: #161B22; border-left: 3px solid #25D8E8;
@@ -376,6 +426,8 @@ def render_home_page(orch: EduMentorOrchestrator):
                         ">
                             {c.get('summary', '')}
                         </div>
+                        {defs_html}
+                        {named_html}
                         <strong style="font-size: 13px; color: #CBD5E1;">Key Intuitions to Master:</strong>
                         <ul style="margin: 8px 0 12px 20px; font-size: 13px; color: #E2E8F0; line-height: 1.6;">
                             {principles_html}

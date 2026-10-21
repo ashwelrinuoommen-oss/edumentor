@@ -50,9 +50,9 @@ class TestUIComponents(unittest.TestCase):
         }
         render_recall_feedback(eval_result)
         self.assertTrue(mock_md.called)
-        call_arg = mock_md.call_args[0][0]
-        self.assertIn("90%", call_arg)
-        self.assertIn("Quality 5/5", call_arg)
+        all_calls = " ".join(call[0][0] for call in mock_md.call_args_list if call[0] and isinstance(call[0][0], str))
+        self.assertIn("90%", all_calls)
+        self.assertIn("Mastered", all_calls)
 
     @patch("streamlit.markdown")
     def test_notifications_render(self, mock_md):

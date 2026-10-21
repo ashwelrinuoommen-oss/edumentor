@@ -13,7 +13,7 @@ from edumentor.graph import ConceptGraph
 from edumentor.scheduler import calculate_sm2, prioritize_study_queue, map_score_to_quality, get_quality_label
 from edumentor.evaluation import evaluate_recall, generate_socratic_hints
 from edumentor.samples import SAMPLE_CURRICULA
-from edumentor.extractor import extract_concepts_from_text, extract_text_from_pdf, clean_doc_title
+from edumentor.extractor import extract_concepts_from_text, extract_text_from_pdf, extract_pdf_pages_and_text, clean_doc_title
 from edumentor.llm import LLMConfig, call_llm
 from edumentor.ai.question_generator import (
     generate_recall_question as ai_generate_recall_question,
@@ -346,6 +346,13 @@ class EduMentorOrchestrator:
             c.setdefault("mastery_state", "Needs relearning")
             c.setdefault("mastery_display", "0% — Needs relearning")
             c.setdefault("mastery_level", "Unseen")
+            c.setdefault("major_topic", c.get("major_topic") or self.curriculum_title or "Core Module")
+            c.setdefault("subtopic", c.get("subtopic") or c.get("title", ""))
+            c.setdefault("named_entities", c.get("named_entities", []))
+            c.setdefault("named_types_or_methods", c.get("named_types_or_methods", c.get("named_entities", [])))
+            c.setdefault("definitions", c.get("definitions", []))
+            c.setdefault("source_page", c.get("source_page") or "Uploaded Notes")
+            c.setdefault("source_location", c.get("source_location") or c.get("source_page") or "Uploaded Notes")
             c.setdefault("confidence", "Not rated")
             c.setdefault("last_attempt", None)
             c.setdefault("next_review", None)
@@ -678,7 +685,12 @@ class EduMentorOrchestrator:
 
         return self.load_curriculum(matched["title"], concepts, dependencies)
 
-    def ingest_notes_text(self, text: str, title: str = "Uploaded Notes") -> Dict[str, Any]:
+    def ingest_notes_text(
+        self,
+        text: str,
+        title: str = "Uploaded Notes",
+        pages_data: Optional[List[Dict[str, Any]]] = None
+    ) -> Dict[str, Any]:
         """Silently analyze student notes, extract concepts, and generate study path."""
         # Teacher avatar changes to thinking / processing state
         self.teacher_state = "thinking"
@@ -692,7 +704,12 @@ class EduMentorOrchestrator:
         })
 
         cleaned_title = clean_doc_title(title)
-        extracted = extract_concepts_from_text(text, curriculum_title=cleaned_title, llm_config=self.llm_config)
+        extracted = extract_concepts_from_text(
+            text,
+            curriculum_title=cleaned_title,
+            llm_config=self.llm_config,
+            pages_data=pages_data
+        )
         
         # Phase 41: Product Events Telemetry
         try:
@@ -733,12 +750,11 @@ class EduMentorOrchestrator:
 
         try:
             with safe_temporary_file(pdf_bytes, suffix=".pdf") as _:
-                pdf_res = extract_text_from_pdf(pdf_bytes)
-                text = pdf_res if isinstance(pdf_res, str) else (pdf_res[1] if isinstance(pdf_res, tuple) else str(pdf_res))
+                text, pages_data = extract_pdf_pages_and_text(pdf_bytes)
                 doc_title = clean_doc_title(safe_name)
-                if not text or len(text.strip()) < 50:
+                if not text or len(text.strip()) < 30:
                     raise EduMentorUploadError(ERROR_UPLOAD_MSG)
-                return self.ingest_notes_text(text, doc_title)
+                return self.ingest_notes_text(text, doc_title, pages_data=pages_data)
         except EduMentorUploadError:
             self.chat_history.append({
                 "role": "assistant",
@@ -1641,6 +1657,14 @@ class EduMentorOrchestrator:
                 # Default to Operating Systems as canonical example
                 return self.load_sample_module("Operating Systems")
 
+        # 8. Active recall self-explanation submitted directly while in STUDYING state
+        # When EduMentor has presented the topic and asked the student to explain it in their own words
+        if self.state == "STUDYING" and self.current_concept_id and self.current_concept_id in self.concepts:
+            words = user_text.strip().split()
+            is_question = "?" in user_text or clean.startswith(("what ", "why ", "how ", "can you ", "explain ", "could you ", "tell me "))
+            if len(words) >= 4 and len(user_text.strip()) >= 15 and not is_question:
+                return self.submit_recall_response(user_text)
+
         # Phase 25: Teacher Message Engine generates controlled personality prompt
         prompt_context = self.memory.format_llm_prompt_context(intent="chat", user_message=user_text)
         prompt = self.teacher_message_engine.build_conversational_teacher_prompt(
@@ -1700,6 +1724,47 @@ class EduMentorOrchestrator:
         exp_filename = avatar_expression_manager.get_expression(self.teacher_state)
         exp_url = avatar_expression_manager.get_expression_url(self.teacher_state)
 
+        # Build detailed hierarchical study path structure (Major Topics -> Subtopics -> Named Entities)
+        major_topics_map = {}
+        for idx, cid in enumerate(self.topological_order):
+            c_info = self.concepts.get(cid, {})
+            m_topic = c_info.get("major_topic") or self.curriculum_title or "Core Curriculum"
+            if m_topic not in major_topics_map:
+                major_topics_map[m_topic] = []
+
+            is_cur = (cid == self.current_concept_id)
+            lvl = c_info.get("mastery_level")
+            is_mast = (lvl == "Mastered") or c_info.get("is_mastered", False) or (c_info.get("sm2_status") == "mastered" and c_info.get("last_quality_score", 0) >= 4)
+            is_rev = (c_info.get("last_quality_score", 0) < 3 and c_info.get("total_reviews", 0) > 0)
+
+            status = "mastered" if is_mast else ("needs_revision" if is_rev else ("current" if is_cur else "upcoming"))
+
+            major_topics_map[m_topic].append({
+                "id": cid,
+                "title": c_info.get("title", cid),
+                "subtopic": c_info.get("subtopic") or c_info.get("title", cid),
+                "order_index": idx + 1,
+                "status": status,
+                "mastered": is_mast,
+                "mastery_score": c_info.get("mastery_score", 0),
+                "source_page": c_info.get("source_page") or "Uploaded Notes",
+                "named_entities": c_info.get("named_entities", []),
+                "named_types_or_methods": c_info.get("named_types_or_methods", []),
+                "definitions": c_info.get("definitions", []),
+                "summary": c_info.get("summary", ""),
+                "prerequisites": c_info.get("prerequisites", [])
+            })
+
+        hierarchy = [
+            {
+                "major_topic": m,
+                "subtopics": subs,
+                "count": len(subs),
+                "mastered_count": sum(1 for s in subs if s.get("mastered", False))
+            }
+            for m, subs in major_topics_map.items()
+        ]
+
         return {
             "status": "ok",
             "student_name": self.student_name,
@@ -1736,6 +1801,8 @@ class EduMentorOrchestrator:
             "conversation_memory": self.memory.get_summary(),
             "session_context": self.memory.retrieve_relevant_context(),
             "graph": graph_dict,
+            "topological_order": self.topological_order,
+            "hierarchy": hierarchy,
             "system_message": system_message
         }
 

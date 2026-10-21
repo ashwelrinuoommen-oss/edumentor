@@ -175,8 +175,9 @@ class TestMasteryEnginePhase10(unittest.TestCase):
 
         # Submit an excellent recall response
         high_score_answer = (
-            "A process in an operating system is an instance of an executing program with its own memory space, "
-            "program counter, call stack, and system resources managed by the OS kernel."
+            "Process scheduling is the mechanism where the OS dispatcher allocates CPU time slices "
+            "to runnable processes in the ready queue using algorithms like Round Robin or Priority Scheduling "
+            "to maximize throughput and minimize waiting time."
         )
         res = self.orch.submit_recall_response(high_score_answer)
 

@@ -18,7 +18,7 @@ def render_progress_page(orch: EduMentorOrchestrator):
     st.markdown(f"""
     <div style="margin-bottom: 24px;">
         <div style="font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700; color: #25D8E8; letter-spacing: 0.08em; text-transform: uppercase;">
-            Student Progress
+            Student Retention & Mastery
         </div>
         <div style="font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em; margin-top: 4px;">
             {summary.get('title', 'YOUR LEARNING')}

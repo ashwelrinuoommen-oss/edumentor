@@ -14,6 +14,14 @@ from edumentor.components.teacher_avatar import get_avatar_state_config
 from edumentor.utils.text_utils import clean_html_for_markdown
 
 
+# -----------------------------------------------------------------------------
+# DESIGN SYSTEM PALETTE COMPLIANCE (PHASE 27 TOKENS PRESERVED):
+# Base: #050608, Surface: #0D1117, Accent Cyan: #25D8E8, Violet: #8B5CF6,
+# Text Primary: #F5F7FA, Text Muted: #9AA4B2, Border: #27303B
+# Fonts: Geist, Inter
+# -----------------------------------------------------------------------------
+
+
 def format_teacher_paragraph(text: str) -> str:
     """Converts a teacher message paragraph into clean HTML supporting bold, italics, code, and blockquotes."""
     p = text.strip()
@@ -74,7 +82,7 @@ def render_status_notice(text: str):
     """
     safe_text = html.escape(text.strip())
     notice_html = f"""
-    <div class="chat-status-notice" style="
+    <div class="chat-status-notice chat-row status-notice" style="
       display: flex;
       align-items: center;
       gap: 10px;
@@ -90,7 +98,7 @@ def render_status_notice(text: str):
       max-width: 90%;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     ">
-      <span style="
+      <span class="status-pill" style="
         display: inline-block;
         width: 6px;
         height: 6px;
@@ -120,7 +128,7 @@ def render_teacher_message(
     """
     b64_data = avatar_expression_manager.get_expression_base64(expression)
     cfg = get_avatar_state_config(expression)
-    badge_label = status_badge or cfg.get("badge_text", "AI Teacher")
+    badge_label = status_badge or cfg.get("badge_text", "AI Academic Mentor")
 
     # Format text into paragraphs if multi-line
     paragraphs = [p.strip() for p in text.strip().split("\n\n") if p.strip()]
@@ -156,14 +164,8 @@ def render_teacher_message(
         width: {avatar_size}px;
         position: relative;
       ">
-        <!-- 1. Avatar with ambient glow halo -->
+        <!-- 1. Avatar with subtle ambient framing -->
         <div style="position: relative; width: {avatar_size}px; height: {avatar_size}px; margin: 0 auto; z-index: 2;">
-          <div style="
-            position: absolute; inset: -4px; border-radius: 50%;
-            background: linear-gradient(135deg, {cfg.get('halo_color1', '#25D8E8')} 0%, {cfg.get('halo_color2', '#8B5CF6')} 100%);
-            filter: blur(8px);
-            opacity: 0.7;
-          "></div>
           <div style="
             position: relative; width: {avatar_size}px; height: {avatar_size}px;
             border-radius: 50%;
@@ -203,13 +205,13 @@ def render_teacher_message(
         <!-- 4. Subtle Expression Badge -->
         <div style="
           margin-top: 6px;
-          font-size: 10px;
-          font-weight: 600;
+          font-size: 10.5px;
+          font-weight: 700;
           color: {cfg.get('badge_color', '#25D8E8')};
           background: rgba(13, 17, 23, 0.9);
           border: 1px solid #27303B;
           border-radius: 10px;
-          padding: 2px 7px;
+          padding: 2px 8px;
           white-space: nowrap;
           display: inline-block;
           font-family: 'Geist', 'Inter', sans-serif;
@@ -224,11 +226,11 @@ def render_teacher_message(
         background: #0D1117;
         border: 1px solid #27303B;
         border-left: 3px solid #25D8E8;
-        border-radius: 0 16px 16px 16px;
-        padding: 16px 20px 14px 20px;
+        border-radius: 0 14px 14px 14px;
+        padding: 18px 22px 16px 22px;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
         color: #F5F7FA;
-        font-family: 'Geist', 'Inter', -apple-system, sans-serif;
+        font-family: 'Inter', -apple-system, sans-serif;
         font-size: 14.5px;
         line-height: 1.6;
         transition: border-color 0.2s ease;

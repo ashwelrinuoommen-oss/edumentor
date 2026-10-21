@@ -112,7 +112,7 @@ def render_recall_feedback(
 
         {f'''
         <div style="background: rgba(37, 216, 232, 0.08); border-left: 3px solid #25D8E8; padding: 10px 14px; border-radius: 0 8px 8px 0; margin-top: 10px;">
-            <div style="font-size: 0.75rem; font-weight: 700; color: #25D8E8; text-transform: uppercase; margin-bottom: 3px;">💡 Teacher Coaching Tip</div>
+            <div style="font-size: 0.75rem; font-weight: 700; color: #25D8E8; text-transform: uppercase; margin-bottom: 3px;">💡 Academic Mentor Coaching Tip</div>
             <div style="font-size: 0.86rem; color: #E2E8F0; line-height: 1.4;">{html.escape(tip)}</div>
         </div>
         ''' if tip else ''}

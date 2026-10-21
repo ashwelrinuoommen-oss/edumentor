@@ -59,9 +59,8 @@ def render_compact_study_path(
             status_badge = f"""
             <span style="
                 color: #10B981; font-weight: 700; font-size: 11.5px;
-                background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.35);
+                background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3);
                 padding: 2px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;
-                box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
             ">★ Mastered{score_text}</span>
             """
             row_style = "color: #E2E8F0; font-weight: 600;"
@@ -71,8 +70,8 @@ def render_compact_study_path(
             status_badge = """
             <span style="
                 color: #25D8E8; font-weight: 700; font-size: 11.5px;
-                background: rgba(37, 216, 232, 0.15); border: 1px solid rgba(37, 216, 232, 0.45);
-                padding: 2px 10px; border-radius: 9999px; box-shadow: 0 0 12px rgba(37, 216, 232, 0.25);
+                background: rgba(37, 216, 232, 0.15); border: 1px solid rgba(37, 216, 232, 0.4);
+                padding: 2px 10px; border-radius: 9999px;
                 display: inline-flex; align-items: center; gap: 4px;
             ">→ Next</span>
             """
@@ -131,6 +130,22 @@ def render_compact_study_path(
             num_style = "color: #475569; font-weight: 600;"
             bg_style = "background: transparent;"
 
+        meta_html = ""
+        named_methods = c.get("named_types_or_methods") or []
+        page_num = c.get("source_page")
+        major = c.get("major_topic")
+
+        chips = []
+        if major and major.lower() != title.lower():
+            chips.append(f"<span style='font-size: 10px; color: #25D8E8; text-transform: uppercase; letter-spacing: 0.04em;'>{html.escape(major)}</span>")
+        for m in named_methods[:3]:
+            chips.append(f"<span style='background: rgba(37, 216, 232, 0.1); border: 1px solid rgba(37, 216, 232, 0.25); border-radius: 3px; padding: 1px 5px; font-size: 10px; color: #25D8E8;'>{html.escape(m)}</span>")
+        if page_num:
+            chips.append(f"<span style='font-size: 10px; color: #64748B;'>p. {page_num}</span>")
+
+        if chips:
+            meta_html = f"<div style='display: flex; align-items: center; gap: 5px; margin-top: 2px; flex-wrap: wrap;'>{''.join(chips)}</div>"
+
         items_html.append(f"""
         <div style="
             display: flex; align-items: center; justify-content: space-between;
@@ -142,9 +157,12 @@ def render_compact_study_path(
                 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; {num_style} width: 22px;">
                     {num_str}
                 </span>
-                <span style="font-size: 13.5px; {row_style}">
-                    {html.escape(title)}
-                </span>
+                <div>
+                    <span style="font-size: 13.5px; {row_style}">
+                        {html.escape(title)}
+                    </span>
+                    {meta_html}
+                </div>
             </div>
             <div>
                 {status_badge}

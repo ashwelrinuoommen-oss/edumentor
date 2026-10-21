@@ -397,7 +397,7 @@ def _demo_llm_response(prompt: str) -> str:
         word_count = len(student_text.split())
 
         # Calibrated rubric scoring
-        if overlap_ratio >= 0.38:
+        if overlap_ratio >= 0.24 or len(common) >= 7:
             # High conceptual mastery: accurate vocabulary and mechanisms
             correctness = min(98.0, 72.0 + overlap_ratio * 38.0)
             completeness = min(96.0, 60.0 + min(22.0, word_count * 0.5) + overlap_ratio * 25.0)

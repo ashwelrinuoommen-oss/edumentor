@@ -21,7 +21,7 @@ def render_settings_page(orch: EduMentorOrchestrator):
     """
     st.markdown("""
     <div style="margin-bottom: 24px;">
-        <div style="font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 700; color: #FFFFFF;">
+        <div style="font-family: 'Newsreader', Georgia, serif; font-size: 30px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;">
             System Settings & Providers
         </div>
         <div style="font-size: 14px; color: #94A3B8; margin-top: 4px;">
@@ -33,13 +33,13 @@ def render_settings_page(orch: EduMentorOrchestrator):
     tab_llm, tab_sm2, tab_avatar, tab_data = st.tabs([
         "⚡ LLM Provider",
         "🧠 Spaced Repetition (SM-2)",
-        "👩‍🏫 AI Teacher Persona",
+        "👨‍🏫 AI Mentor Persona",
         "💾 Storage & Data"
     ])
 
     # --- TAB 1: LLM PROVIDER ---
     with tab_llm:
-        st.markdown("<h4 style='color: #F8FAFC;'>AI Model Configuration</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color: #F8FAFC; font-family: Newsreader, Georgia, serif; font-size: 20px; margin-top: 10px;'>AI Model Configuration</h4>", unsafe_allow_html=True)
         st.caption("EduMentor uses a multi-provider abstraction layer. You can switch between cloud frontier models or run fully offline in Demo Mode.")
 
         provider = st.selectbox(
@@ -88,7 +88,7 @@ def render_settings_page(orch: EduMentorOrchestrator):
 
     # --- TAB 2: SM-2 SETTINGS ---
     with tab_sm2:
-        st.markdown("<h4 style='color: #F8FAFC;'>SuperMemo-2 (SM-2) Parameters</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color: #F8FAFC; font-family: Newsreader, Georgia, serif; font-size: 20px; margin-top: 10px;'>SuperMemo-2 (SM-2) Parameters</h4>", unsafe_allow_html=True)
         st.caption("Customize the mathematical parameters of the spaced repetition interval calculations.")
 
         col_ef, col_min_ef = st.columns(2)
@@ -99,8 +99,8 @@ def render_settings_page(orch: EduMentorOrchestrator):
 
         st.markdown("""
         <div style="background: #0D1117; border: 1px solid #27303B; border-radius: 10px; padding: 14px 18px; margin-top: 14px; font-size: 0.85rem; color: #94A3B8;">
-            <strong style="color: #25D8E8;">SM-2 Quality Rating Logic:</strong>
-            <ul style="margin: 6px 0 0 16px;">
+            <strong style="color: #25D8E8; font-family: 'Newsreader', Georgia, serif; font-size: 16px;">SM-2 Quality Rating Logic:</strong>
+            <ul style="margin: 6px 0 0 16px; line-height: 1.6; color: #CBD5E1;">
                 <li><strong>5:</strong> Perfect recall without hesitation.</li>
                 <li><strong>4:</strong> Correct response after brief hesitation.</li>
                 <li><strong>3:</strong> Correct response with serious difficulty.</li>
@@ -111,8 +111,8 @@ def render_settings_page(orch: EduMentorOrchestrator):
 
     # --- TAB 3: AI TEACHER PERSONA & AVATAR SHOWCASE ---
     with tab_avatar:
-        st.markdown("<h4 style='color: #F8FAFC;'>AI Teacher Persona & Avatar System</h4>", unsafe_allow_html=True)
-        st.caption("EduMentor's teacher is designed to feel friendly, intelligent, calm, encouraging, slightly playful, and academic without being childish or robotic.")
+        st.markdown("<h4 style='color: #F8FAFC; font-family: Newsreader, Georgia, serif; font-size: 20px; margin-top: 10px;'>AI Academic Mentor & Avatar System</h4>", unsafe_allow_html=True)
+        st.caption("EduMentor's mentor is designed to feel friendly, intelligent, calm, encouraging, slightly playful, and academic without being childish or robotic.")
 
         all_states = get_available_avatar_states()
         cur_state = getattr(orch, "teacher_state", "greeting")
@@ -137,13 +137,13 @@ def render_settings_page(orch: EduMentorOrchestrator):
                 st.rerun()
 
             st.markdown("""
-            <div style="background: #090D14; border: 1px solid #1E293B; border-radius: 8px; padding: 12px 14px; font-size: 12.5px; color: #94A3B8; margin-top: 8px;">
-                <span style="color: #25D8E8; font-weight: 600;">Tone Rule:</span> No robotic system messages like <em>“🤖 SYSTEM: Next concept...”</em>. Always introduce topics with warm academic phrasing: <em>“Alright, let's start with Process Scheduling. 😊 Take your time and study it from your notes.”</em>
+            <div style="background: #090D14; border: 1px solid #1E293B; border-radius: 8px; padding: 12px 14px; font-size: 12.5px; color: #94A3B8; margin-top: 8px; line-height: 1.5;">
+                <span style="color: #25D8E8; font-weight: 700;">Tone Rule:</span> No robotic system messages like <em>“🤖 SYSTEM: Next concept...”</em>. Always introduce topics with warm academic phrasing: <em>“Alright, let's start with Process Scheduling. 😊 Take your time and study it from your notes.”</em>
             </div>
             """, unsafe_allow_html=True)
 
         st.markdown("<hr style='border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 20px 0;'>", unsafe_allow_html=True)
-        st.markdown("<h5 style='color: #F8FAFC;'>Complete 11 Avatar States Gallery</h5>", unsafe_allow_html=True)
+        st.markdown("<h5 style='color: #F8FAFC; font-family: Newsreader, Georgia, serif; font-size: 17px;'>Complete 11 Avatar States Gallery</h5>", unsafe_allow_html=True)
 
         # 11 States Gallery in a clean responsive grid
         cols = st.columns(4)
@@ -157,7 +157,7 @@ def render_settings_page(orch: EduMentorOrchestrator):
 
     # --- TAB 4: DATA & STORAGE ---
     with tab_data:
-        st.markdown("<h4 style='color: #F8FAFC;'>Active Workspace Storage</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color: #F8FAFC; font-family: Newsreader, Georgia, serif; font-size: 20px; margin-top: 10px;'>Active Workspace Storage</h4>", unsafe_allow_html=True)
         st.write(f"**Current Active Student Profile:** `{orch.student_name}`")
         st.write(f"**Loaded Module:** `{orch.curriculum_title or 'None'}`")
         st.write(f"**Concepts in Memory:** `{len(orch.concepts)}`")

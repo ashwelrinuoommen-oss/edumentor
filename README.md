@@ -209,19 +209,26 @@ cp .env.example .env
 *Note: By default, EduMentor runs out-of-the-box in **Demo Mode** without requiring any external cloud API keys.*
 
 ### 3. Run EduMentor
-You can launch either the Streamlit app or the FastAPI server:
 
-**Launch Streamlit (Primary Experience):**
+You can launch EduMentor in any of the following ways:
+
+#### Option A: Windows Desktop Shortcut (Recommended)
+Double-click the **`EduMentor`** icon on your Windows Desktop, or double-click **`Launch-EduMentor.bat`** in this folder.
+*(To create or reinstall the desktop shortcut, double-click `Install-Desktop-Shortcut.bat` or run `Install-Desktop-Shortcut.ps1`).*
+
+#### Option B: Terminal Command
 ```bash
 python -m streamlit run app.py
 ```
-Open your browser at `http://localhost:8501`.
+Open your browser at **`http://localhost:8501`**.
 
-**Launch FastAPI Backend Server:**
-```bash
-python -m uvicorn server:app --host 127.0.0.1 --port 8000
-```
-API documentation is available at `http://localhost:8000/docs`.
+The application is completely self-contained in a single process:
+- **One URL:** `http://localhost:8501`
+- **One command:** `python -m streamlit run app.py` (or double-click the desktop icon)
+
+All scientific engines — note & PDF ingestion, granular topic segregation, NetworkX prerequisite DAG generation, active recall challenge generation, two-pillar hybrid evaluation (Sentence-Transformers + LLM Judge), SM-2 spaced repetition, and SQLite persistence — execute directly in this single application host without requiring a second server to be started.
+
+*(Note: `server.py` is maintained internally as a programmatic REST API layer for headless automated test suites).*
 
 ---
 

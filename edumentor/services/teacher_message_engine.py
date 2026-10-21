@@ -63,9 +63,10 @@ class TeacherMessageEngine:
         """
         lead = self.CANONICAL_TONES["starting"]
         name = student_name or self.default_student_name
+        cnt = total_concepts or 1
         intro = (
-            f"Got it, {name}. I've gone through your notes. There are quite a few concepts here, "
-            f"so I've arranged them in an order that should make them easier to understand."
+            f"Got it, {name}. I've gone through your module. I found {cnt} concepts and "
+            f"arranged them in a learning order so we don't jump into difficult topics too early."
         )
 
         lines = [

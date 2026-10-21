@@ -31,11 +31,11 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# CUSTOM CSS INJECTION (DARK CINEMATIC SPACE & RESTRAINED MOTION)
+# CUSTOM CSS INJECTION (PHASE 27 MAIN INTERFACE VISUAL DESIGN)
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* Hide Default Streamlit Chrome */
 #MainMenu, header, footer, .stDeployButton, div[data-testid="stDecoration"] {
@@ -43,43 +43,62 @@ st.markdown("""
   visibility: hidden !important;
 }
 
-/* Background Canvas: Dark Cinematic Space */
+/* Base Canvas: Dark Cinematic Space */
 .stApp {
   background-color: #050608 !important;
   color: #F5F7FA !important;
-  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   background-image: 
     radial-gradient(circle at 50% 8%, rgba(37, 216, 232, 0.09) 0%, transparent 42%),
     radial-gradient(circle at 85% 82%, rgba(139, 92, 246, 0.06) 0%, transparent 38%) !important;
   background-attachment: fixed !important;
 }
 
+/* Main Container Constraint */
 .block-container {
-  max-width: 980px !important;
-  padding-top: 1.0rem !important;
+  max-width: 1020px !important;
+  padding-top: 1.2rem !important;
   padding-bottom: 5rem !important;
 }
 
-/* Floating Navbar Container: 54px high, rounded, translucent, bordered, subtle */
+/* Headings Typography */
+h1, h2, h3, .editorial-heading {
+  font-family: 'Newsreader', Georgia, serif !important;
+  color: #F5F7FA !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.015em !important;
+}
+
+h4, h5, h6 {
+  font-family: 'Inter', sans-serif !important;
+  color: #F5F7FA !important;
+  font-weight: 600 !important;
+}
+
+p, span, label, div {
+  color: #F5F7FA;
+}
+
+/* Floating / Anchored Navbar Container: Dark Translucent Surface */
 .floating-nav-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
-  background: rgba(13, 17, 23, 0.78);
+  height: 58px;
+  background: rgba(13, 17, 23, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 9999px;
-  padding: 0 22px;
-  margin-bottom: 24px;
+  border: 1px solid #27303B;
+  border-radius: 14px;
+  padding: 0 20px;
+  margin-bottom: 22px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .brand-wrapper {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .brand-glyph {
@@ -94,14 +113,44 @@ st.markdown("""
 }
 
 .brand-title {
-  font-family: 'Outfit', sans-serif;
-  font-size: 16.5px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   background: linear-gradient(180deg, #FFFFFF 0%, #CCD6E0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1;
+}
+
+/* Streamlit Buttons: Vibrant Cyan/Violet Gradient Primary */
+.stButton > button {
+  background: linear-gradient(135deg, #25D8E8 0%, #8B5CF6 100%) !important;
+  color: #050608 !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  border-radius: 10px !important;
+  border: none !important;
+  padding: 8px 18px !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 4px 14px rgba(37, 216, 232, 0.25) !important;
+}
+
+.stButton > button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(37, 216, 232, 0.45) !important;
+}
+
+.stButton > button:active {
+  transform: translateY(0.5px) !important;
+}
+
+/* Secondary Button Modifier */
+button[kind="secondary"] {
+  background-color: #0D1117 !important;
+  color: #F5F7FA !important;
+  border: 1px solid #27303B !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Streamlit Chat Message & Input Overrides */
@@ -113,7 +162,7 @@ div[data-testid="stChatMessage"] {
 div[data-testid="stChatMessageContent"] {
   background: #0D1117 !important;
   border: 1px solid #27303B !important;
-  border-radius: 14px !important;
+  border-radius: 12px !important;
   padding: 14px 18px !important;
   font-size: 14.5px !important;
   color: #F5F7FA !important;
@@ -121,7 +170,7 @@ div[data-testid="stChatMessageContent"] {
 }
 
 div[data-testid="stChatInput"] {
-  border-radius: 14px !important;
+  border-radius: 12px !important;
   background-color: #0D1117 !important;
   border: 1px solid #27303B !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
@@ -138,22 +187,67 @@ div[data-testid="stChatInput"] textarea {
   font-size: 14.5px !important;
 }
 
-/* Custom Buttons */
-.stButton > button {
-  background: linear-gradient(135deg, #25D8E8 0%, #8B5CF6 100%) !important;
-  color: #050608 !important;
-  font-weight: 700 !important;
-  font-size: 13.5px !important;
-  border-radius: 10px !important;
-  border: none !important;
-  padding: 8px 18px !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 4px 14px rgba(37, 216, 232, 0.25) !important;
+/* Streamlit Inputs Overrides */
+input[type="text"], input[type="password"], textarea, .stTextInput > div > div > input {
+  background-color: #0D1117 !important;
+  color: #F5F7FA !important;
+  border: 1px solid #27303B !important;
+  border-radius: 8px !important;
 }
 
-.stButton > button:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 6px 20px rgba(37, 216, 232, 0.45) !important;
+input:focus, textarea:focus {
+  border-color: #25D8E8 !important;
+  box-shadow: 0 0 0 2px rgba(37, 216, 232, 0.2) !important;
+}
+
+/* Streamlit Expanders, Popovers, and Tabs */
+div[data-testid="stExpander"] {
+  background-color: #0D1117 !important;
+  border: 1px solid #27303B !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+}
+
+div[data-testid="stPopoverBody"] {
+  background-color: #0D1117 !important;
+  color: #F5F7FA !important;
+  border: 1px solid #27303B !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+button[data-baseweb="tab"] {
+  color: #9AA4B2 !important;
+  font-weight: 500 !important;
+}
+
+button[data-baseweb="tab"][aria-selected="true"] {
+  color: #25D8E8 !important;
+  font-weight: 700 !important;
+  border-bottom-color: #25D8E8 !important;
+}
+
+/* Metrics Overrides */
+div[data-testid="stMetric"] {
+  background: #0D1117 !important;
+  border: 1px solid #27303B !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+}
+
+div[data-testid="stMetricLabel"] {
+  color: #9AA4B2 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+
+div[data-testid="stMetricValue"] {
+  color: #25D8E8 !important;
+  font-family: 'Newsreader', Georgia, serif !important;
+  font-weight: 700 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -179,12 +273,12 @@ def main():
     if not authenticated_user:
         st.markdown("""
         <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin: 15px 0 20px 0;">
-            <div class="brand-glyph">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#050608">
+            <div class="brand-glyph" style="background: linear-gradient(135deg, #25D8E8 0%, #8B5CF6 100%); width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 14px rgba(37, 216, 232, 0.4);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#050608">
                 <path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2zm-8.8 9.35L12 15.45l8.8-4.1V17l-8.8 4.1-8.8-4.1v-5.65z"/>
               </svg>
             </div>
-            <div class="brand-title">EDUMENTOR</div>
+            <div class="brand-title" style="font-family: 'Newsreader', Georgia, serif; font-size: 21px; font-weight: 700; letter-spacing: 0.03em; color: #F5F7FA;">EDUMENTOR</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -202,17 +296,20 @@ def main():
     # Small Floating Navigation Bar:
     # 52–60px high, rounded, translucent, bordered, and subtle
     # EDUMENTOR | Home History Progress Settings | Ashwel ▾
-    nav_col1, nav_col2, nav_col3 = st.columns([2.2, 4.0, 2.2])
+    nav_col1, nav_col2, nav_col3 = st.columns([2.4, 3.8, 2.2])
 
     with nav_col1:
         st.markdown("""
-        <div style="display: flex; align-items: center; gap: 10px; height: 50px;">
-            <div class="brand-glyph">
+        <div style="display: flex; align-items: center; gap: 10px; height: 48px;">
+            <div class="brand-glyph" style="background: linear-gradient(135deg, #25D8E8 0%, #8B5CF6 100%); width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 14px rgba(37, 216, 232, 0.4);">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="#050608">
                 <path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2zm-8.8 9.35L12 15.45l8.8-4.1V17l-8.8 4.1-8.8-4.1v-5.65z"/>
               </svg>
             </div>
-            <div class="brand-title">EDUMENTOR</div>
+            <div>
+              <div class="brand-title" style="font-family: 'Newsreader', Georgia, serif; font-size: 19px; font-weight: 700; letter-spacing: 0.03em; color: #F5F7FA; line-height: 1;">EDUMENTOR</div>
+              <div style="font-size: 10px; font-weight: 600; color: #25D8E8; letter-spacing: 0.06em; text-transform: uppercase;">Concept Mastery</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 

@@ -486,14 +486,14 @@ def render_teacher_avatar(size: int = 86, state: str = "idle", status_text: str 
   }}
 }}
 </style>
-<div class="teacher-avatar-container" style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 12px auto;text-align:center;transition:opacity 200ms ease;">
-<div style="position:relative;width:{size}px;height:{size}px;">
-<div class="teacher-avatar-halo" style="position:absolute;inset:-6px;border-radius:50%;background:linear-gradient(135deg, {cfg['halo_color1']} 0%, {cfg['halo_color2']} 100%);filter:blur(10px);animation:{cfg['halo_anim']};"></div>
-<div class="teacher-avatar-frame" style="position:relative;width:{size}px;height:{size}px;border-radius:50%;background:linear-gradient(145deg, #090D14 0%, #131B26 100%);border:2.5px solid {cfg['border_color']};display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,0.6), inset 0 0 16px rgba(0,0,0,0.5);overflow:hidden;animation:{cfg['head_anim']};">
-<img src="data:image/png;base64,{b64_data}" onerror="this.onerror=null;this.src='http://127.0.0.1:8000/assets/teacher_avatar/{st_name}.png';" alt="EduMentor AI Mentor" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;" />
+<div class="teacher-avatar-container" style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 12px auto;text-align:center;transition:opacity 200ms ease;background:transparent;">
+<div style="position:relative;width:{size}px;min-height:{size}px;display:flex;align-items:center;justify-content:center;background:transparent;">
+<div class="teacher-avatar-halo" style="position:absolute;inset:0;border-radius:50%;background:transparent;display:none;"></div>
+<div class="teacher-avatar-frame" style="position:relative;width:{size}px;min-height:{size}px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;box-shadow:none;overflow:visible;animation:{cfg['head_anim']};">
+<img src="data:image/png;base64,{b64_data}" alt="EduMentor AI Mentor" style="width:100%;height:auto;max-height:{size}px;object-fit:contain;display:block;margin:0 auto;background:transparent;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.3));" />
 </div>
 </div>
-<div style="margin-top:10px;background:{cfg['badge_bg']};color:{cfg['badge_color']};border:1px solid {cfg['border_color']};padding:3.5px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:0.3px;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.25);">
+<div style="margin-top:8px;background:{cfg['badge_bg']};color:{cfg['badge_color']};border:1px solid {cfg['border_color']};padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:0.3px;display:inline-flex;align-items:center;gap:6px;">
 <span>{html.escape(badge_content)}</span>
 </div>
 </div>"""
