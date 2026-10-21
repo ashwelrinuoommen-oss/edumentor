@@ -83,5 +83,12 @@ Desktop.ini
 .vscode/
 *.swp
 *.swo
-*~
 *.log
+
+# --- Frontend & Node.js ---
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
