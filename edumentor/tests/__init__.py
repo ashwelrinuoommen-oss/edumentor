@@ -1,3 +1,0 @@
-"""
-EduMentor package tests module.
-"""
